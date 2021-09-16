@@ -1,0 +1,164 @@
+{{$current := currentCategory -}}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+
+        <style>
+            @import url("https://fonts.googleapis.com/css2?family=Roboto&display=swap");
+
+            :root {
+                --header-height: 10%;
+                --sidebar-width: 10%;
+                --title-color: #262730;
+            }
+
+            * {
+                padding: 0;
+                margin: 0;
+                box-sizing: border-box;
+                font-family: Roboto, sans-serif;
+            }
+
+            .header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: var(--header-height);
+                padding: 20px;
+                background-color: #247ba0;
+
+                display: flex;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .header .title {
+                color: var(--title-color);
+                font-size: 40px;
+            }
+
+            .header .current-category {
+                color: var(--title-color);
+                font-size: 30px;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: var(--header-height);
+                left: 0;
+                width: var(--sidebar-width);
+                height: calc(100% - var(--header-height));
+                padding: 10px;
+                background-color: #88d9e6;
+
+                display: flex;
+                flex-direction: column;
+                flex-wrap: nowrap;
+                justify-content: start;
+                align-items: center;
+            }
+
+            .sidebar .categories-title {
+                color: var(--title-color);
+                font-size: 30px;
+            }
+
+            .sidebar .categories {
+                list-style: none;
+
+                display: flex;
+                flex-direction: column;
+                flex-wrap: nowrap;
+                justify-content: flex-start;
+                align-items: center;
+            }
+
+            .sounds {
+                position: fixed;
+                top: var(--header-height);
+                left: var(--sidebar-width);
+                width: calc(100% - var(--sidebar-width));
+                height: calc(100% - var(--header-height));
+                padding: 40px;
+                overflow-y: auto;
+                background-color: #c5fffd;
+
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: space-evenly;
+                align-items: flex-start;
+            }
+
+            .sounds .sound {
+                text-align: center;
+                border-radius: 10px;
+                background-color: #009ddc;
+                padding: 20px;
+                margin: 40px;
+                min-width: 250px;
+                max-width: 400px;
+                min-height: 100px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1 class="title">{{ .DisplayName }}</h1>
+            <h2 class="current-category">{{ $current.DisplayName }}</h2>
+        </div>
+
+        <div class="sidebar">
+            <h2 class="categories-title">Kategorien</h2>
+            <ul class="categories">
+                {{- range $category := .Categories -}}
+                <li title="{{ len $category.Sounds }} Sounds"><a href="../{{ $category.OutputFilename }}/index.html">{{ $category.DisplayName }}</a></li>
+                {{- end -}}
+            </ul>
+        </div>
+
+        <div class="sounds">
+            {{- range $sound := $current.Sounds -}}
+            <div class="sound" data-filename="{{ $sound.OutputFilename }}">{{ $sound.DisplayName }}</div>
+            {{- end -}}
+        </div>
+
+        <script>
+            "use strict";
+
+            function download(file, name) {
+                let link = document.createElement("a");
+                link.href = file;
+                link.download = name;
+                link.click();
+            }
+
+            document.querySelectorAll(".sound").forEach(sound => {
+                let audioFilename = sound.getAttribute("data-filename");
+                let audioFilepath = "./" + audioFilename;
+                let audio = new Audio(audioFilepath);
+
+                audio.onplay = () => sound.classList.add("playing");
+                audio.onpause = () => sound.classList.remove("playing");
+
+                sound.addEventListener("click", event => {
+                    if (event.ctrlKey) {
+                        download(audioFilepath, audioFilename);
+                        return;
+                    }
+
+                    if (audio.paused) {
+                        if (!event.altKey) audio.currentTime = 0;
+                        audio.play();
+                    } else {
+                        audio.pause();
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>
