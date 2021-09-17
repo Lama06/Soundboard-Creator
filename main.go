@@ -15,6 +15,12 @@ const (
 	outputDir = "website"
 )
 
+var forbiddenCharacters = strings.NewReplacer(
+	"ä", "ae",
+	"ö", "oe",
+	"ü", "ue",
+)
+
 func removeFileExtension(filename string) string {
 	ext := filepath.Ext(filename)
 	return filename[0 : len(filename)-len(ext)]
@@ -56,7 +62,7 @@ func loadCategory(path string) categoryData {
 	data := categoryData{
 		DisplayName:    filepath.Base(path),
 		InputFilename:  filepath.Base(path),
-		OutputFilename: strings.ToLower(strings.ReplaceAll(filepath.Base(path), " ", "-")),
+		OutputFilename: strings.ToLower(forbiddenCharacters.Replace(strings.ReplaceAll(filepath.Base(path), " ", "-"))),
 	}
 
 	files, err := os.ReadDir(path)
@@ -72,7 +78,7 @@ func loadCategory(path string) categoryData {
 		data.Sounds = append(data.Sounds, soundData{
 			DisplayName:    removeFileExtension(info.Name()),
 			InputFilename:  info.Name(),
-			OutputFilename: strings.ToLower(strings.ReplaceAll(info.Name(), " ", "-")),
+			OutputFilename: strings.ToLower(forbiddenCharacters.Replace(strings.ReplaceAll(info.Name(), " ", "-"))),
 		})
 	}
 
@@ -174,7 +180,7 @@ func createSoundboard(soundboard soundboardData) {
 	if err != nil {
 		panic(err)
 	}
-	t.Execute(indexPage, "./"+strings.ToLower(strings.ReplaceAll(soundboard.DefaultCategory, " ", "-"))+"/index.html")
+	t.Execute(indexPage, "./"+strings.ToLower(forbiddenCharacters.Replace(strings.ReplaceAll(soundboard.DefaultCategory, " ", "-")))+"/index.html")
 }
 
 func main() {
